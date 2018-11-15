@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<script src="js/mui.min.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/myCss.css" rel="stylesheet" />
+		<script type="text/javascript">
+			//初始化预加载详情页面
+			mui.init({
+				preloadPages: [{
+					id: 'newsInfo.html',
+					url: 'newsInfo.html'
+				}]
+			});
+		</script>
+	</head>
+	<body>
+		<!-- 主界面不动、菜单移动 -->
+		<!-- 侧滑导航根容器 -->
+		<div class="mui-off-canvas-wrap mui-draggable mui-slide-in">
+			<!-- 菜单容器 -->
+			<aside class="mui-off-canvas-left whitesmoke" id="offCanvasSide">
+				<div class="mui-scroll-wrapper">
+					<div class="mui-scroll" >
+						<header class="mui-bar mui-bar-nav blue" >
+							<span class="mui-icon mui-icon-contact mui-pull-left white"></span>
+							<h4 class="mui-pull-left">&emsp;请登录</h4>
+						</header>
+						<div class="menu blue">
+							<span class="mui-icon mui-icon-star mui-pull-left white"></span>
+							<h4 class="mui-pull-left">&nbsp;我的收藏</h4>
+							<span class="mui-icon mui-icon-download mui-pull-left white"></span>
+							<h4 class="mui-pull-left">&nbsp;离线下载</h4>
+						</div>
+						<div class="goIndex" id='back'>
+							<span class="mui-icon mui-icon-home mui-pull-left font-blue"></span>
+							<h4 class="mui-pull-left font-blue">&emsp;首页</h4>
+						</div>
+					</div>
+				</div>
+			</aside>
+			<!-- 主页面容器 -->
+			<div class="mui-inner-wrap">
+				<!-- 主页面标题 -->
+				<header class="mui-bar mui-bar-nav blue" >
+					<a class="mui-icon mui-action-menu mui-icon-bars mui-pull-left white"  href="#offCanvasSide"></a>
+					<h4 class="mui-pull-left">&emsp;首页</h4>
+					<a class="mui-pull-right mui-icon mui-icon-more white"></a>
+					<a class="mui-pull-right mui-icon mui-icon-chat white">&emsp;</a>
+				</header>
+				<div class="mui-content mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<!-- 主界面具体展示内容 -->
+						<div id="slider" class="mui-slider">
+							<!-- 图片轮播区 -->
+							<div class="mui-slider-group mui-slider-loop" id="imgPlayer">
+							</div>
+							<!-- 图片轮播上的圆点 -->
+							<div class="mui-slider-indicator" id="imgDian">
+							</div>
+						</div>
+
+						<h5>今日新闻</h5>
+
+						<!-- 新闻列表 -->
+						<ul class="mui-table-view" id="news">
+							
+						</ul>
+
+					</div>
+				</div>
+				<div class="mui-off-canvas-backdrop"></div>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var app = {
+			// 加载图片轮播
+			imgPlayer: function() {
+				mui.get('https://news-at.zhihu.com/api/3/news/hot', {}, function(data) {
+					var html = "";
+					var dian = "<div class='mui-indicator mui-active'></div>";
+
+					html += "<div class='mui-slider-item mui-slider-item-duplicate'>";
+					html += "<a href='#'>";
+					html += "<img src='" + data.recent[3].thumbnail + "' width=400 height=300>";
+					html += "</a>";
+					html += "<div class='myDiv'>";
+					html += "<p>&emsp;" + data.recent[3].title + "</p>";
+					html += "</div>";
+					html += "</div>";
+					for (var i = 0; i < 4; i++) {
+						var o = data.recent[i];
+						html += "<div class='mui-slider-item' id='"+o.news_id+"'>";
+						html += "<a href='#'>";
+						html += "<img src='" + o.thumbnail + "' width=400 height=300>";
+						html += "</a>";
+						html += "<div class='myDiv'>";
+						html += "<p>&emsp;" + o.title + "</p>";
+						html += "</div>";
+						html += "</div>";
+
+						if (i > 0) {
+							dian += "<div class='mui-indicator'></div>";
+						}
+					}
+					html += "<div class='mui-slider-item mui-slider-item-duplicate'>";
+					html += "<a href='#'>";
+					html += "<img src='" + data.recent[0].thumbnail + "' width=400 height=300>";
+					html += "</a>";
+					html += "<div class='myDiv'>";
+					html += "<p>&emsp;" + data.recent[0].title + "</p>";
+					html += "</div>";
+					html += "</div>";
+
+					document.getElementById("imgPlayer").innerHTML += html;
+					var gallery = mui('.mui-slider');
+					gallery.slider({
+						interval: 2000 //自动轮播周期，若为0则不自动播放，默认为0；
+					});
+					document.getElementById("imgDian").innerHTML += dian;
+				}, 'json');
+			},
+			// 加载新闻列表
+			newsList: function() {
+				mui.get('https://news-at.zhihu.com/api/4/news/latest', {}, function(data) {
+					var html = "";
+					mui.each(data.stories, function(i, o) {
+						html += "<li class='mui-table-view-cell mui-media' id='" + o.id + "'>";
+						html += "<a href='javascript:;'>";
+						html += "<img class='mui-media-object mui-pull-right' src='" + o.images + "'>";
+						html += "<div class='mui-media-body'>";
+						html += "" + o.title;
+						//html += "<p class='mui-ellipsis'>"+o.title+"</p>";
+						html += "</div>";
+						html += "</a>";
+						html += "</li>";
+					});
+					document.getElementById("news").innerHTML += html;
+					app.newsTap();
+				}, 'json');
+
+			},
+			// 跳转新闻详情
+			newsTap: function() {
+				var infoPage = null;
+				mui("body").on("tap", ".mui-media", function() {
+					//获取id
+					var id = this.getAttribute("id");
+					if (!infoPage) {
+						infoPage = plus.webview.getWebviewById("newsInfo.html");
+					}
+					//传值给详情页面，通知加载新数据
+					mui.fire(infoPage, 'getNewsInfo', {
+						id: id
+					});
+					//打开新闻详情
+					mui.openWindow({
+						id: 'newsInfo.html',
+					});
+				});
+				mui('body').on('tap','.mui-slider-item',function(){
+					 var id = this.getAttribute("id");
+					 if (!infoPage) {
+						infoPage = plus.webview.getWebviewById("newsInfo.html");
+					 }
+					 //传值给详情页面，通知加载新数据
+					 mui.fire(infoPage, 'getNewsInfo', {
+						id: id
+					 });
+					 //打开新闻详情
+					 mui.openWindow({
+						id: 'newsInfo.html',
+					 });
+				});
+			},
+			backIndex:function(){
+				document.getElementById('back').addEventListener('tap',function(){
+					mui.back();
+				});
+			},
+			init: function() {
+				mui('.mui-scroll-wrapper').scroll({
+					deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+				});
+				app.imgPlayer();
+				app.newsList();
+				app.backIndex();
+			}
+		}
+		app.init();
+	</script>
+</html>

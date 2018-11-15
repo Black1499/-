@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.css" rel="stylesheet" />
+		<link rel="stylesheet" type="text/css" href="css/myCss.css" />
+	</head>
+
+	<body>
+		<div class="mui-inner-wrap">
+			<header class="mui-bar mui-bar-nav blue">
+				<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left white"></a>
+				<span class="mui-icon mui-icon mui-icon-compose mui-pull-right"></span>
+				<h4 class="white myLeft" id="num"><h4>
+			</header>
+			<div class="mui-content mui-scroll-wrapper">
+				<div class="mui-scroll" id="info">
+					
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="js/mui.js"></script>
+	<script type="text/javascript">
+		mui.init();
+		mui('.mui-scroll-wrapper').scroll({
+			deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+		});
+		document.addEventListener("getComments", function(e) {
+			var id = e.detail.id;
+			document.getElementById('num').innerText = e.detail.num+"条点评";
+			mui.get('https://news-at.zhihu.com/api/4/story/'+id+'/long-comments',{},function(data){
+					var html = "";
+					mui.each(data.comments,function (i,o) {
+						html+="<div class='mui-card'>";
+							<!--页眉，放置标题-->
+							html+="<div class='mui-card-header'><img src='"+o.avatar+"'>"+o.author+"</div>";
+							<!--内容区-->
+							html+="<div class='mui-card-content'>"+o.content+"</div>";
+							<!--页脚，放置补充信息或支持的操作-->
+							html+="<div class='mui-card-footer'>点赞"+o.likes+"</div>";
+						html+="</div>";
+					});
+					mui.get('https://news-at.zhihu.com/api/4/story/'+id+'/short-comments',{},function(data){
+					
+					mui.each(data.comments,function (i,o) {
+						html+="<div class='mui-card'>";
+							<!--页眉，放置标题-->
+							html+="<div class='mui-card-header'><img src='"+o.avatar+"'>"+o.author+"</div>";
+							<!--内容区-->
+							html+="<div class='mui-card-content'>"+o.content+"</div>";
+							<!--页脚，放置补充信息或支持的操作-->
+							html+="<div class='mui-card-footer'>点赞"+o.likes+"</div>";
+						html+="</div>";
+					})
+					document.getElementById('info').innerHTML = html;
+				},'json'
+			);
+					
+				},'json'
+			);
+			
+			
+		});
+	</script>
+	</body>
+</html>
